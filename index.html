@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Desigualdades Lineales y Cuadráticas</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    input, select { margin: 5px; }
+    .resultado { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h2>Resolución de Desigualdades</h2>
+
+<p>Ingrese los coeficientes:</p>
+
+<label>a: <input type="number" id="a" step="any"></label>
+<label>b: <input type="number" id="b" step="any"></label>
+<label>c: <input type="number" id="c" step="any" value="0"></label>
+<br>
+<label>Tipo de desigualdad:
+  <select id="tipo">
+    <option value="<"> &lt; </option>
+    <option value="<="> &le; </option>
+    <option value=">"> &gt; </option>
+    <option value=">="> &ge; </option>
+  </select>
+</label>
+
+<button onclick="resolver()">Resolver</button>
+
+<div class="resultado" id="resultado"></div>
+
+<script>
+function resolver() {
+  let a = parseFloat(document.getElementById('a').value);
+  let b = parseFloat(document.getElementById('b').value);
+  let c = parseFloat(document.getElementById('c').value);
+  let tipo = document.getElementById('tipo').value;
+  let res = document.getElementById('resultado');
+
+  if (isNaN(a) || isNaN(b) || isNaN(c)) {
+    res.textContent = "Por favor, ingrese todos los coeficientes.";
+    return;
+  }
+
+  if (a === 0 && c === 0) {
+    // Ecuación lineal: bx ? 0
+    let x = -b;
+    res.textContent = `Desigualdad lineal: ${b}x ${tipo} 0`;
+    if (b === 0) {
+      res.textContent += tipo === "<" || tipo === ">" ? " → Sin solución." : " → Todas las x (verdadera para todo x).";
+    } else {
+      let resultado = tipo === "<" || tipo === "<=" ? (b < 0 ? "x > 0" : "x < 0") :
+                      (b < 0 ? "x < 0" : "x > 0");
+      res.textContent += " → Solución: " + resultado;
+    }
+  } else {
+    // Ecuación cuadrática: ax² + bx + c ? 0
+    let discriminante = b*b - 4*a*c;
+    res.textContent = `Desigualdad cuadrática: ${a}x² + ${b}x + ${c} ${tipo} 0`;
+
+    if (discriminante < 0) {
+      if ((tipo === "<" && a > 0) || (tipo === ">" && a < 0)) {
+        res.textContent += " → Siempre verdadero.";
+      } else {
+        res.textContent += " → Sin solución real.";
+      }
+    } else if (discriminante === 0) {
+      let x0 = -b / (2*a);
+      if (tipo === "<" || tipo === ">") {
+        res.textContent += " → Sin solución (solo se cumple en un punto).";
+      } else {
+        res.textContent += ` → Solución: x = ${x0}`;
+      }
+    } else {
+      let x1 = (-b - Math.sqrt(discriminante)) / (2*a);
+      let x2 = (-b + Math.sqrt(discriminante)) / (2*a);
+      if (a > 0) {
+        if (tipo === "<") res.textContent += ` → Solución: x ∈ (${x1.toFixed(2)}, ${x2.toFixed(2)})`;
+        else if (tipo === "<=") res.textContent += ` → Solución: x ∈ [${x1.toFixed(2)}, ${x2.toFixed(2)}]`;
+        else res.textContent += ` → Solución: x ∈ (-∞, ${x1.toFixed(2)}) ∪ (${x2.toFixed(2)}, ∞)`;
+      } else {
+        if (tipo === "<") res.textContent += ` → Solución: x ∈ (-∞, ${x1.toFixed(2)}) ∪ (${x2.toFixed(2)}, ∞)`;
+        else if (tipo === "<=") res.textContent += ` → Solución: x ∈ (-∞, ${x1.toFixed(2)}] ∪ [${x2.toFixed(2)}, ∞)`;
+        else res.textContent += ` → Solución: x ∈ (${x1.toFixed(2)}, ${x2.toFixed(2)})`;
+      }
+    }
+  }
+}
+</script>
+
+</body>
+</html>
 
