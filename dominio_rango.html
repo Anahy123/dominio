@@ -1,1 +1,52 @@
+function procesarFuncion() {
+  const expresion = document.getElementById("funcion").value;
+  const expr = math.compile(expresion.replace("^", "**"));
+  const xValores = math.range(-10, 10, 0.1).toArray();
+  let yValores = [];
+
+  try {
+    yValores = xValores.map(x => {
+      const y = expr.evaluate({ x });
+      return (typeof y === 'number' && isFinite(y)) ? y : null;
+    });
+  } catch (error) {
+    document.getElementById("resultado").innerHTML = "⚠️ Error en la función.";
+    return;
+  }
+
+  // Filtra valores válidos
+  const puntosValidos = xValores
+    .map((x, i) => ({ x, y: yValores[i] }))
+    .filter(p => p.y !== null);
+
+  const dominio = {
+    min: Math.min(...puntosValidos.map(p => p.x)).toFixed(2),
+    max: Math.max(...puntosValidos.map(p => p.x)).toFixed(2),
+  };
+
+  const rango = {
+    min: Math.min(...puntosValidos.map(p => p.y)).toFixed(2),
+    max: Math.max(...puntosValidos.map(p => p.y)).toFixed(2),
+  };
+
+  // Graficar
+  const trace = {
+    x: puntosValidos.map(p => p.x),
+    y: puntosValidos.map(p => p.y),
+    mode: "lines",
+    line: { color: "blue" },
+    type: "scatter"
+  };
+
+  Plotly.newPlot("grafica", [trace], {
+    title: `Gráfica de f(x) = ${expresion}`,
+    xaxis: { title: "x" },
+    yaxis: { title: "f(x)" }
+  });
+
+  document.getElementById("resultado").innerHTML = `
+    <strong>Dominio:</strong> [${dominio.min}, ${dominio.max}]<br>
+    <strong>Rango:</strong> [${rango.min}, ${rango.max}]
+  `;
+}
 
