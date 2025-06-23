@@ -1,52 +1,125 @@
-function procesarFuncion() {
-  const expresion = document.getElementById("funcion").value;
-  const expr = math.compile(expresion.replace("^", "**"));
-  const xValores = math.range(-10, 10, 0.1).toArray();
-  let yValores = [];
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dominio y Rango de una Función</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #grafica {
+      margin-top: 30px;
+    }
+    #resultado {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dominio y Rango</h1>
+    <input type="text" id="funcion" placeholder="Ejemplo: x^2 - 4" />
+    <button onclick="calcularDominioRango()">Calcular y Graficar</button>
+    <div id="grafica"></div>
+    <div id="resultado"></div>
+  </div>
 
-  try {
-    yValores = xValores.map(x => {
-      const y = expr.evaluate({ x });
-      return (typeof y === 'number' && isFinite(y)) ? y : null;
-    });
-  } catch (error) {
-    document.getElementById("resultado").innerHTML = "⚠️ Error en la función.";
-    return;
-  }
+  <script>
+    function calcularDominioRango() {
+      const expresion = document.getElementById("funcion").value;
+      const expr = math.compile(expresion.replace(/\^/g, '**'));
+      const xMin = -20, xMax = 20, paso = 0.1;
+      const xValores = [];
+      const yValores = [];
 
-  // Filtra valores válidos
-  const puntosValidos = xValores
-    .map((x, i) => ({ x, y: yValores[i] }))
-    .filter(p => p.y !== null);
+      for (let x = xMin; x <= xMax; x += paso) {
+        try {
+          const y = expr.evaluate({ x });
+          if (typeof y === 'number' && isFinite(y)) {
+            xValores.push(x);
+            yValores.push(y);
+          }
+        } catch (e) {
+          // Ignorar valores indefinidos
+        }
+      }
 
-  const dominio = {
-    min: Math.min(...puntosValidos.map(p => p.x)).toFixed(2),
-    max: Math.max(...puntosValidos.map(p => p.x)).toFixed(2),
-  };
+      if (xValores.length === 0) {
+        document.getElementById("resultado").innerHTML = "⚠️ No se pudo graficar la función.";
+        Plotly.purge('grafica');
+        return;
+      }
 
-  const rango = {
-    min: Math.min(...puntosValidos.map(p => p.y)).toFixed(2),
-    max: Math.max(...puntosValidos.map(p => p.y)).toFixed(2),
-  };
+      // Calcular dominio y rango numéricamente
+      const dominioMin = Math.min(...xValores).toFixed(2);
+      const dominioMax = Math.max(...xValores).toFixed(2);
+      const rangoMin = Math.min(...yValores).toFixed(2);
+      const rangoMax = Math.max(...yValores).toFixed(2);
 
-  // Graficar
-  const trace = {
-    x: puntosValidos.map(p => p.x),
-    y: puntosValidos.map(p => p.y),
-    mode: "lines",
-    line: { color: "blue" },
-    type: "scatter"
-  };
+      // Mostrar resultados
+      document.getElementById("resultado").innerHTML = `
+        <b>Dominio aproximado:</b> [${dominioMin}, ${dominioMax}]<br>
+        <b>Rango aproximado:</b> [${rangoMin}, ${rangoMax}]
+      `;
 
-  Plotly.newPlot("grafica", [trace], {
-    title: `Gráfica de f(x) = ${expresion}`,
-    xaxis: { title: "x" },
-    yaxis: { title: "f(x)" }
-  });
+      // Graficar
+      const trazado = {
+        x: xValores,
+        y: yValores,
+        mode: 'lines',
+        type: 'scatter',
+        line: { color: 'blue' }
+      };
 
-  document.getElementById("resultado").innerHTML = `
-    <strong>Dominio:</strong> [${dominio.min}, ${dominio.max}]<br>
-    <strong>Rango:</strong> [${rango.min}, ${rango.max}]
-  `;
-}
+      const layout = {
+        title: `f(x) = ${expresion}`,
+        xaxis: { title: 'x' },
+        yaxis: { title: 'f(x)' },
+        margin: { t: 50 }
+      };
+
+      Plotly.newPlot('grafica', [trazado], layout);
+    }
+  </script>
+</body>
+</html>
+
+  
+  
 
