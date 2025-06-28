@@ -3,39 +3,38 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Solucionador de Ecuaciones</title>
+  <title>Dominio y Rango de Funciones Racionales</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      background-color: #f0f4f8;
+      background-color: #eef2f7;
     }
     input, button {
       padding: 10px;
-      margin-top: 10px;
       font-size: 16px;
     }
     #resultado {
       margin-top: 20px;
     }
     canvas {
-      background: white;
-      border: 1px solid #ccc;
       margin-top: 20px;
+      background-color: white;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
-  <h2>Solucionador de Ecuaciones Lineales y Cuadráticas</h2>
-  <p>Escribe una ecuación como <strong>x^2 - 4</strong> o <strong>2x + 3</strong>:</p>
-  <input type="text" id="funcion" placeholder="Ej: x^2 - 4 o 2x + 3">
-  <button onclick="graficar()">Graficar y Mostrar Dominio/Rango</button>
+  <h2>Calculadora de Dominio, Rango y Gráfica</h2>
+  <p>Escribe una función racional (ejemplo: <strong>x / (x^2 - 4)</strong>):</p>
+  <input type="text" id="funcion" value="x / (x^2 - 4)">
+  <button onclick="graficar()">Graficar</button>
 
   <div id="resultado">
     <p><strong>Dominio:</strong> <span id="dominio"></span></p>
-    <p><strong>Rango:</strong> <span id="rango"></span></p>
+    <p><strong>Rango (aproximado):</strong> <span id="rango"></span></p>
   </div>
 
   <canvas id="grafico" width="600" height="400"></canvas>
@@ -45,24 +44,37 @@
       const expr = document.getElementById("funcion").value;
       const x_vals = [];
       const y_vals = [];
+      const errores = [];
 
-      for (let x = -20; x <= 20; x += 0.5) {
+      for (let x = -20; x <= 20; x += 0.1) {
         try {
           const y = math.evaluate(expr, { x: x });
-          if (typeof y === 'number' && isFinite(y)) {
+          if (isFinite(y)) {
             x_vals.push(x);
             y_vals.push(y);
+          } else {
+            errores.push(x);
           }
-        } catch (e) {
-          console.log("Error en x = " + x + ": " + e);
+        } catch {
+          errores.push(x);
         }
       }
 
-      const dominio = `[${Math.min(...x_vals)}, ${Math.max(...x_vals)}]`;
-      const rango = `[${Math.min(...y_vals).toFixed(2)}, ${Math.max(...y_vals).toFixed(2)}]`;
+      // Dominio: todos los x menos los errores
+      let dominioTexto = `Todos los reales excepto `;
+      if (errores.length > 0) {
+        dominioTexto += errores.map(n => n.toFixed(2)).join(', ');
+      } else {
+        dominioTexto = 'Todos los números reales';
+      }
 
-      document.getElementById("dominio").textContent = dominio;
-      document.getElementById("rango").textContent = rango;
+      // Rango aproximado
+      const rangoMin = Math.min(...y_vals).toFixed(2);
+      const rangoMax = Math.max(...y_vals).toFixed(2);
+      const rangoTexto = `[${rangoMin}, ${rangoMax}]`;
+
+      document.getElementById("dominio").textContent = dominioTexto;
+      document.getElementById("rango").textContent = rangoTexto;
 
       if (window.miGrafico) {
         window.miGrafico.destroy();
@@ -76,15 +88,24 @@
           datasets: [{
             label: 'f(x)',
             data: y_vals,
+            borderColor: 'green',
+            borderWidth: 2,
             fill: false,
-            borderColor: 'blue',
+            pointRadius: 0,
             tension: 0.1
           }]
         },
         options: {
+          responsive: true,
           scales: {
-            x: { title: { display: true, text: 'x' }, min: -20, max: 20 },
-            y: { title: { display: true, text: 'f(x)' } }
+            x: {
+              title: { display: true, text: 'x' },
+              min: -20,
+              max: 20
+            },
+            y: {
+              title: { display: true, text: 'f(x)' }
+            }
           }
         }
       });
